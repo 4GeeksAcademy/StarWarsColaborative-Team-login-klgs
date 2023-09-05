@@ -1,9 +1,12 @@
 import { object } from "prop-types"
+import axios from "axios";
 
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
-			film: {},
+			 
+		
+			film: {isAuthenticated: false,},
 			// EMPIEZA DESDE >> vehicles: [{...},{...},{...},{...}]
 			favoritos: [],
 			peoples: [],
@@ -13,41 +16,95 @@ const getState = ({ getStore, getActions, setStore }) => {
 			starships: [],
 			PageInfo:undefined
 		},
-		actions: {
+		actions:
+		
+		 {
+			login: async (email, password)=> {
+				console.log("fnciona")
+			 	try {
+			 		let data = await axios.post('https://fantastic-couscous-97994xr7px55hjvp-3000.app.github.dev/login',{
+			 				"email":email,
+			 				"password":password
+			 			})
+			 		console.log(data);
+					//Guardar en el navegador el token
+					localStorage.setItem("token",data.data.access_token);
+					setStore({ isAuthenticated: true }); // Actualiza el estado a true
+  
+					return true;
+			 		}
+			 		catch(error){
+			 			if (error.response.status === 404){
+							alert(error.response.data.msg)
+						}
+						
+			 		}
+			
+				},
 
+				get_perfil: async ()=> {
+					console.log("fnciona")
+					let token =  localStorage.getItem("token")
+					 try {
+						 let data = await axios.get('https://fantastic-couscous-97994xr7px55hjvp-3000.app.github.dev/perfil',{
+							headers: {'Authorization': 'Bearer ' + token}
+						 })
+						 console.log(data);
+						//Guardar en el navegador el token
+						//localStorage.setItem("token",data.data.access_token);
+						return true;
+						 }
+						 catch(error){
+							//  if (error.response.status === 404){
+							// 	alert(error.response.data.msg)
+							// }
+							
+						 }
+				
+					},
+
+					
+				get_favoritos: async ()=> {
+					let token =  localStorage.getItem("token")
+					 try {
+						 let data = await axios.get('https://fantastic-couscous-97994xr7px55hjvp-3000.app.github.dev/favoritos',{
+							headers: {'Authorization': 'Bearer ' + token}
+						 })
+						 console.log(data);
+				
+						 setStore({favoritos: data.data.dataFinal})
+						//Guardar en el navegador el token
+						//localStorage.setItem("token",data.data.access_token);
+						return true;
+						 }
+						 catch(error){
+							//  if (error.response.status === 404){
+							// 	alert(error.response.data.msg)
+							// }
+							
+						 }
+				
+					},
+
+			
+		
 
 
 
 		// EMPIEZA DESDE >> 21 a 50  FAVORITOS >>> RODRI
 		guardarFavoritos: async (NameFav) => {
 			let existElement = false
-			getStore().favoritos.map((element)=>{
-				if(NameFav === element) {
+			getStore().favoritos.map((element) => {
+				if (NameFav === element) {
 					return existElement = true
 				}
 			})
 
-			if(existElement === false) {
-				setStore({...getStore(),favoritos:[...getStore().favoritos,NameFav]})
+			if (existElement === false) {
+				setStore({ ...getStore(), favoritos: [...getStore().favoritos, NameFav] })
 			}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		},
+		
 		// EMPIEZA DESDE >> 51 a 80  PEOPLE >>> RODRI
 		obtenerPersonas: async () => {
 			console.log("xd")
@@ -144,7 +201,6 @@ const getState = ({ getStore, getActions, setStore }) => {
 			try {
 			  const response = await fetch(url);
 			  const data = await response.json();
-				console.log(data)
 				data.results.map((item, index)=>{
 					const id = index+1
 					return setStore({...getStore(),films:[...getStore().films,{...item,id:id}]})
@@ -203,7 +259,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 			console.log(`Estas buscando la api aca https://swapi.dev/api/${tipo}/${uid}`)
 			try {
 				console.log(`Estas buscando la api aca https://swapi.dev/api/${tipo}/${uid}`)
-				const resp = await fetch(`https://swapi.dev/api/${tipo}/${uid}`)
+		
 				const data = await resp.json()
 				console.log(data)
 				setStore({...getStore(),PageInfo:data})
@@ -222,8 +278,10 @@ const getState = ({ getStore, getActions, setStore }) => {
 			setStore({...getStore(),favoritos:newArr})
 		}
 
-		}
+		
+	},
+    }
 	}
-}
+
 
 export default getState
